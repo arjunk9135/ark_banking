@@ -9,7 +9,7 @@ const loggedIn={firstName:"Arjun"}
     return (
         <section className='home'>
             <div className='home-content'>
-                <header className='hone-header'>
+                <header className='home-header'>
                     <HeaderBox 
                     type="greeting" 
                     title='Welcome'
