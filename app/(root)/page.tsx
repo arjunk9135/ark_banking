@@ -23,12 +23,12 @@ const loggedIn={firstName:"Arjun",lastName:'K',email:'arjunk9135@gmail.com'}
                     totalCurrentBalance={22398.35}
                     
                     
-                    />
+                    /> 
                 </header>
 
                 
             </div>
-            <RightSidebar user={loggedIn} transactions={[]} banks={[]}/>
+            <RightSidebar user={loggedIn} transactions={[]} banks={[{currentBalance:350.00},{currentBalance:2459.87}]}/>
         </section>
     )
 }
