@@ -326,3 +326,11 @@ declare interface getBankProps {
 declare interface getBankByAccountIdProps {
   accountId: string;
 }
+
+// declare interface FormFieldItemProps {
+//   form: form;
+//   name : NamedCurve,
+//   placeholder:placeholder,
+//   type:type,
+//   label:label
+// }
