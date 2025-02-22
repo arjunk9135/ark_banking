@@ -21,16 +21,21 @@ import { Input } from "@/components/ui/input"
 import FormFieldItem from './FormFieldItem';
 import { authFormSchema } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { getLoggedInUser, signIn, signUp } from '@/lib/actions/user.actions';
 
 
 
-const AuthForm = ({ type }: { type: String }) => {
-
-    const [user, setuser] = React.useState(null);
+const AuthForm = ({ type }: { type: string }) => {
+    const router = useRouter();
+    const [user, setUser] = React.useState(null);
+    
     const [loading, setloading] = React.useState(false);
 
-    const form = useForm<z.infer<typeof authFormSchema>>({
-        resolver: zodResolver(authFormSchema),
+    const formSchema = authFormSchema(type);
+
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
         defaultValues: {
             email: "",
             password: ""
@@ -38,12 +43,29 @@ const AuthForm = ({ type }: { type: String }) => {
     })
 
     // 2. Define a submit handler.
-    function onSubmit(values: z.infer<typeof authFormSchema>) {
-        // Do something with the form values.
-        // ✅ This will be type-safe and validated.
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
         setloading(true);
-        console.log(values);
-        setloading(false);
+        try {
+            //sign up with appwrite
+            if (type === 'sign-up') {
+                const newUser = await signUp(data);
+                if(newUser){
+                    setUser(newUser); 
+                }
+
+            } else {
+                const res = await signIn({ email: data?.email, password: data?.password });
+                console.log('LOGGINED IN........',res)
+                if (res) {
+                    router.push('/');
+                }
+            }
+        } catch (e) {
+            console.log(e)
+        } finally {
+            setloading(false);
+        }
+
     }
 
 
@@ -68,54 +90,71 @@ const AuthForm = ({ type }: { type: String }) => {
 
                         {type === 'sign-up' && (
                             <>
+                                <div className='flex gap-4 '>
+                                    <FormFieldItem
+                                        control={form?.control}
+                                        name='firstName'
+                                        placeholder='enter your first name'
+                                        type='text'
+                                        label='First Name'
+                                    />
+                                    <FormFieldItem
+                                        control={form?.control}
+                                        name='lastName'
+                                        placeholder='enter your last name'
+                                        type='text'
+                                        label='Last Name'
+                                    />
+                                </div>
+
                                 <FormFieldItem
                                     control={form?.control}
-                                    name='firstName'
-                                    placeholder='enter your first name'
+                                    name='address1'
+                                    placeholder='enter your address'
                                     type='text'
-                                    label='First Name'
+                                    label='Address'
                                 />
                                 <FormFieldItem
                                     control={form?.control}
-                                    name='lastName'
-                                    placeholder='enter your last name'
+                                    name='city'
+                                    placeholder='enter your city'
                                     type='text'
-                                    label='Last Name'
+                                    label='City'
                                 />
-                                <FormFieldItem
-                                    control={form?.control}
-                                    name='state'
-                                    placeholder='enter your state'
-                                    type='text'
-                                    label='State'
-                                />
-                                <FormFieldItem
-                                    control={form?.control}
-                                    name='postalCode'
-                                    placeholder='enter your postal code'
-                                    type='number'
-                                    label='Postal Code'
-                                /><FormFieldItem
-                                    control={form?.control}
-                                    name='dateOfBirth'
-                                    placeholder='enter your date of birth'
-                                    type='text'
-                                    label='Date Of Birth'
-                                />
-                                <FormFieldItem
-                                    control={form?.control}
-                                    name='ssn'
-                                    placeholder='enter your ssn'
-                                    type='number'
-                                    label='SSN'
-                                />
-                                <FormFieldItem
-                                    control={form?.control}
-                                    name='firstName'
-                                    placeholder='enter your first name'
-                                    type='text'
-                                    label='First Name'
-                                />
+                                <div className='flex gap-4'>
+                                    <FormFieldItem
+                                        control={form?.control}
+                                        name='state'
+                                        placeholder='enter your state'
+                                        type='text'
+                                        label='State'
+                                    />
+                                    <FormFieldItem
+                                        control={form?.control}
+                                        name='postalCode'
+                                        placeholder='Example : 656002'
+                                        type='text'
+                                        label='Postal Code'
+                                    />
+                                </div>
+                                <div className='flex gap-4'>
+                                    <FormFieldItem
+                                        control={form?.control}
+                                        name='dateOfBirth'
+                                        placeholder='enter your date of birth'
+                                        type='text'
+                                        label='Date Of Birth'
+                                    />
+                                    <FormFieldItem
+                                        control={form?.control}
+                                        name='ssn'
+                                        placeholder='enter your ssn'
+                                        type='text'
+                                        label='SSN'
+                                    />
+                                </div>
+
+
                             </>
                         )}
 
