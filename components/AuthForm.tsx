@@ -23,13 +23,14 @@ import { authFormSchema } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { getLoggedInUser, signIn, signUp } from '@/lib/actions/user.actions';
+import PlaidLink from './PlaidLink';
 
 
 
 const AuthForm = ({ type }: { type: string }) => {
     const router = useRouter();
     const [user, setUser] = React.useState(null);
-    
+
     const [loading, setloading] = React.useState(false);
 
     const formSchema = authFormSchema(type);
@@ -47,15 +48,28 @@ const AuthForm = ({ type }: { type: string }) => {
         setloading(true);
         try {
             //sign up with appwrite
+
+            const userData = {
+                firstName: data?.firstName!,
+                lastName: data?.lastName!,
+                address1: data?.address1!,
+                city: data?.city!,
+                state: data?.state!,
+                postalCode: data?.postalCode!,
+                dateOfBirth: data?.dateOfBirth!,
+                ssn: data?.ssn!,
+                email: data?.email,
+                password: data?.password
+            }
             if (type === 'sign-up') {
-                const newUser = await signUp(data);
-                if(newUser){
-                    setUser(newUser); 
+                const newUser = await signUp(userData);
+                if (newUser) {
+                    setUser(newUser);
                 }
 
             } else {
                 const res = await signIn({ email: data?.email, password: data?.password });
-                console.log('LOGGINED IN........',res)
+                console.log('LOGGINED IN........', res)
                 if (res) {
                     router.push('/');
                 }
@@ -82,9 +96,12 @@ const AuthForm = ({ type }: { type: string }) => {
                     </h1>
                 </div>
             </header>
-            {user ? (<div className='flex flex-col gap-4'>
-                {/* Plain link component */}
-            </div>) : (<>
+            {user ? (
+        <div className="flex flex-col gap-4">
+          <PlaidLink user={user} variant="primary" />
+        </div>
+      ): (
+            <>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
@@ -191,7 +208,8 @@ const AuthForm = ({ type }: { type: string }) => {
                         {type === 'sign-in' ? 'Sign up' : 'Sign in'}
                     </Link>
                 </footer>
-            </>)}
+            </>
+           )} 
         </section>
     )
 }
