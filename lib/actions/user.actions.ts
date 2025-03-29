@@ -1,6 +1,6 @@
 'use server';
 
-import { ID } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { createAdminClient, createSessionClient } from "../appwrite";
 import { encryptId, extractCustomerIdFromUrl, parseStringify } from "../utils";
 import { cookies } from "next/headers";
@@ -15,6 +15,21 @@ const {
     APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID,
 } = process.env;
 
+export const getUserInfo=async({userId}:getUserInfoProps)=>{
+    try {
+        const {database} = await createAdminClient();
+        const user= await database.listDocuments(
+            DATABASE_ID!,
+            USER_COLLECTION_ID!,
+            [Query.equal('userId',[userId])]
+        )
+        
+        return parseStringify(user?.documents?.[0]);
+            } catch (e) {
+                console.log('Error !!!!!!!!!!!',e)
+            }
+}
+
 export const signIn = async ({ email, password }: signInProps) => {
     try {
         const { account } = await createAdminClient();
@@ -25,39 +40,42 @@ export const signIn = async ({ email, password }: signInProps) => {
             sameSite: "strict",
             secure: true,
         });
-
-        return true;
-        // return parseStringify(newUserAccount);
+         
+        const user = await getUserInfo({
+            userId:session?.userId
+        })
+        
+        return parseStringify(user);
     } catch (e) {
         console.error("SignIn error:", e);
         throw new Error("Failed to sign in. Please check your credentials and try again.");
     }
 };
 
-export const signUp = async ({password , ...data}: SignUpParams) => {
+export const signUp = async ({ password, ...data }: SignUpParams) => {
     const { email, firstName, lastName } = data;
- let newUserAccount; 
+    let newUserAccount;
 
     try {
-        
-        const { account , database} = await createAdminClient();
 
-         newUserAccount = await account.create(
+        const { account, database } = await createAdminClient();
+
+        newUserAccount = await account.create(
             ID.unique(), email, password, `${firstName} ${lastName}`
         );
 
-        console.log('NEW USER ACCOUNT',newUserAccount);
+        console.log('NEW USER ACCOUNT', newUserAccount);
 
-        if(!newUserAccount){
+        if (!newUserAccount) {
             throw new Error('Error creating user')
         }
 
         const dwollaCustomerUrl = await createDwollaCustomer({
             ...data,
-            type:'personal'
+            type: 'personal'
         })
 
-        if(!dwollaCustomerUrl){
+        if (!dwollaCustomerUrl) {
             throw new Error('Error creating dwolla customer');
         }
 
@@ -68,14 +86,17 @@ export const signUp = async ({password , ...data}: SignUpParams) => {
             USER_COLLECTION_ID!,
             ID.unique(),
             {
-              ...data,
-              userId: newUserAccount.$id,
-              dwollaCustomerId,
-              dwollaCustomerUrl
+                ...data,
+                userId: newUserAccount.$id,
+                dwollaCustomerId,
+                dwollaCustomerUrl
             }
-          )
+        )
+
+        console.log('SIGN IN_ NEW USER..........',newUser);
 
         const session = await account.createEmailPasswordSession(email, password);
+        console.log('SESSION...',session);
 
         (await cookies()).set("appwrite-session", session.secret, {
             path: "/",
@@ -87,6 +108,7 @@ export const signUp = async ({password , ...data}: SignUpParams) => {
         return parseStringify(newUser);
     } catch (e) {
         console.error("Signup error:", e);
+        console.error("Full error details:", JSON.stringify(e, null, 2));
         throw new Error("Failed to sign up. Please try again.");
     }
 };
@@ -96,7 +118,11 @@ export const signUp = async ({password , ...data}: SignUpParams) => {
 export async function getLoggedInUser() {
     try {
         const { account } = await createSessionClient();
-        const user = await account.get();
+        const result = await account.get();
+
+        const user = await getUserInfo({userId:result?.$id})
+
+
         console.log("Fetched user:", user); // Debugging
         return parseStringify(user);
     } catch (error) {
@@ -120,15 +146,20 @@ export const logoutAccount = async () => {
 
 export const createLinkToken = async (user: User) => {
     try {
+
+        console.log('User is........', user);
+
         const tokenParams = {
             user: {
-                client_user_id: user?.$id
+                client_user_id: user?.$id?.toString()
             },
             client_name: user?.name || `${user?.firstName} ${user?.lastName}`,
             products: ['auth'] as Products[],
             language: 'en',
             country_codes: ['US'] as CountryCode[],
         }
+
+
 
         console.log("Token Params", tokenParams);
 
@@ -138,8 +169,8 @@ export const createLinkToken = async (user: User) => {
 
         return parseStringify({ linkToken: response?.data?.link_token })
 
-    } catch (e) {
-        console.log('Error',e);
+    } catch (e: any) {
+        console.log('Error', e?.response?.data);
     }
 }
 
@@ -150,7 +181,7 @@ export const createBankAccount = async ({
     accountId,
     accessToken,
     fundingSourceUrl,
-    sharableId,
+    shareableId,
 }: createBankAccountProps) => {
     try {
         const { database } = await createAdminClient();
@@ -163,12 +194,15 @@ export const createBankAccount = async ({
             accountId,
             accessToken,
             fundingSourceUrl,
-            sharableId,
+            shareableId,
         }
         );
+
+        console.log('Linked Bank account',bankAccount)
+
         return parseStringify(bankAccount);
     } catch (e) {
-
+        console.log('Error creating bank account',e)
     }
 }
 
@@ -215,7 +249,7 @@ export const exchangePublicToken = async ({ publicToken, user }: exchangePublicT
             accountId: accountData.account_id,
             accessToken,
             fundingSourceUrl,
-            sharableId: encryptId(accountData.account_id),
+            shareableId: encryptId(accountData.account_id),
         });
 
         // Revalidate the path to reflect the changes
@@ -230,3 +264,48 @@ export const exchangePublicToken = async ({ publicToken, user }: exchangePublicT
         console.log('Error', e)
     }
 }
+
+
+export const getBanks = async ({ userId }: getBanksProps) => {
+    try {
+const {database} = await createAdminClient();
+const banks= await database.listDocuments(
+    DATABASE_ID!,
+    BANK_COLLECTION_ID!,
+    [Query.equal('userId',[userId])]
+)
+
+console.log('Banks.... \n\n',banks)
+
+return parseStringify(banks?.documents);
+    } catch (e) {
+        console.log(e)
+    }
+} 
+
+export const getBank = async ({ documentId }: getBankProps) => {
+    try {
+      const { database } = await createAdminClient();
+  
+      if (!documentId) {
+        throw new Error("Invalid documentId");
+    }
+      const bank = await database.listDocuments(
+        DATABASE_ID!,
+        BANK_COLLECTION_ID!,
+        [Query.equal('userId', [documentId])]
+      )
+
+      const _bank = await database.listDocuments(
+        DATABASE_ID!,
+        BANK_COLLECTION_ID!,
+        [Query.equal('userId', [documentId])]
+      )
+
+      console.log('Bank in DB',bank,_bank)
+  
+      return parseStringify(bank.documents[0]);
+    } catch (error) {
+      console.log('Error while fetchibng bank',error)
+    }
+  }

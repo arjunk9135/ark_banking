@@ -13,18 +13,29 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
 
     useEffect(() => {
         const getLinkToken = async () => {
-            const data = await createLinkToken(user);
-            setToken(data?.linkToken);
+            try {
+                const data = await createLinkToken(user);
+                if(data){
+                  setToken(data?.linkToken);  
+                }
+                
+            } catch (e) {
+                console.log('Error', e)
+            }
+
         };
         getLinkToken();
     }, [user])
 
-    const onSuccess = useCallback<PlaidLinkOnSuccess>(async (public_token:string) => {
-await exchangePublicToken({
-    publicToken:public_token,
-    user
-})
-router.push('/');
+    const onSuccess = useCallback<PlaidLinkOnSuccess>(async (public_token: string) => {
+      const res =  await exchangePublicToken({
+            publicToken: public_token,
+            user
+        })
+        if(res){
+           console.log('priv',res) 
+        }
+        router.push('/');
     }, [user])
 
     const config: PlaidLinkOptions = {
@@ -32,14 +43,14 @@ router.push('/');
         onSuccess
     }
 
-    const {open , ready } = usePlaidLink(config);
+    const { open, ready } = usePlaidLink(config);
 
     return (
         <>
             {variant === 'primary' ? (
-                <Button onClick={()=>open()} 
-                disabled={!ready }
-                className='plaidlink-primary'>
+                <Button onClick={() => open()}
+                    disabled={!ready}
+                    className='plaidlink-primary'>
                     Connect Bank
                 </Button>
             ) : variant === 'ghost' ? (
