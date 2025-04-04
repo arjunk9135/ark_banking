@@ -4,7 +4,6 @@ import React from 'react'
 
 const SignUp = async() => {
     const loggedInUser = await getLoggedInUser();
-    console.log('Loggined in user',loggedInUser)
   return (
     <section className='flex-center size-full max-small px-6'>
         <AuthForm type='sign-up' />

@@ -66,14 +66,20 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 // Get one bank account
 export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
   try {
-    console.log('getAccount id',appwriteItemId)
+    
     // get bank from db
     const bank = await getBank({ documentId: appwriteItemId });
-    console.log('bank in getAccount',bank)
+
+    console.log('THE BANK',bank)
+    
     // get account info from plaid
     const accountsResponse = await plaidClient.accountsGet({
-      access_token: bank.accessToken,
+      access_token: bank?.accessToken,
     });
+
+    if(accountsResponse){
+    console.log('accountsReponse***********',accountsResponse)
+    }
     const accountData = accountsResponse.data.accounts[0];
 
     // get transfer transactions from appwrite
@@ -89,7 +95,7 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
         date: transferData.$createdAt,
         paymentChannel: transferData.channel,
         category: transferData.category,
-        type: transferData.senderBankId === bank.$id ? "debit" : "credit",
+        type: transferData?.senderBankId === bank?.$id ? "debit" : "credit",
       })
     );
 
@@ -101,6 +107,8 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
     const transactions = await getTransactions({
       accessToken: bank?.accessToken,
     });
+
+    console.log('Transactionssss',transactions)
 
     const account = {
       id: accountData.account_id,
@@ -155,32 +163,38 @@ export const getTransactions = async ({
   let transactions: any = [];
 
   try {
+    
     // Iterate through each page of new transaction updates for item
     while (hasMore) {
+        console.log('IN GET TRANSACTION BLOCK.............')
       const response = await plaidClient.transactionsSync({
         access_token: accessToken,
       });
 
+      console.log('RESPONSE FROM TRANSACTIONS API',response?.data)
       const data = response.data;
 
-      transactions = response.data.added.map((transaction) => ({
-        id: transaction.transaction_id,
-        name: transaction.name,
-        paymentChannel: transaction.payment_channel,
-        type: transaction.payment_channel,
-        accountId: transaction.account_id,
-        amount: transaction.amount,
-        pending: transaction.pending,
-        category: transaction.category ? transaction.category[0] : "",
-        date: transaction.date,
-        image: transaction.logo_url,
-      }));
+      transactions.push(
+        ...response.data.added.map((transaction) => ({
+          id: transaction.transaction_id,
+          name: transaction.name,
+          paymentChannel: transaction.payment_channel,
+          type: transaction.payment_channel,
+          accountId: transaction.account_id,
+          amount: transaction.amount,
+          pending: transaction.pending,
+          category: transaction.category ? transaction.category[0] : "",
+          date: transaction.date,
+          image: transaction.logo_url,
+        }))
+      );
+      
 
       hasMore = data.has_more;
     }
 
     return parseStringify(transactions);
   } catch (error) {
-    console.error("An error occurred while getting the accounts:", error);
+    console.error("An error occurred while getting the transactions:", error);
   }
 };

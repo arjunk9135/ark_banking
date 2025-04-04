@@ -8,7 +8,7 @@ import React from 'react'
 import Footer from './Footer';
 
 const SideBar = ({ user }: SiderbarProps) => {
-    console.log('SideBar component is rendering!');
+    
     const pathName = usePathname();
     return (
         <section className='sidebar'>

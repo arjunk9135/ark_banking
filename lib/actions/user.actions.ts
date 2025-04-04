@@ -64,7 +64,7 @@ export const signUp = async ({ password, ...data }: SignUpParams) => {
             ID.unique(), email, password, `${firstName} ${lastName}`
         );
 
-        console.log('NEW USER ACCOUNT', newUserAccount);
+    
 
         if (!newUserAccount) {
             throw new Error('Error creating user')
@@ -123,7 +123,6 @@ export async function getLoggedInUser() {
         const user = await getUserInfo({userId:result?.$id})
 
 
-        console.log("Fetched user:", user); // Debugging
         return parseStringify(user);
     } catch (error) {
         console.error("Error fetching user:", error);
@@ -154,14 +153,14 @@ export const createLinkToken = async (user: User) => {
                 client_user_id: user?.$id?.toString()
             },
             client_name: user?.name || `${user?.firstName} ${user?.lastName}`,
-            products: ['auth'] as Products[],
+            products: ['auth', 'transactions'] as Products[],
             language: 'en',
             country_codes: ['US'] as CountryCode[],
         }
 
 
 
-        console.log("Token Params", tokenParams);
+        
 
         const response = await plaidClient.linkTokenCreate(tokenParams);
 
@@ -198,7 +197,7 @@ export const createBankAccount = async ({
         }
         );
 
-        console.log('Linked Bank account',bankAccount)
+   
 
         return parseStringify(bankAccount);
     } catch (e) {
