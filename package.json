@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "debug": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -21,7 +22,7 @@
     "dotenv": "^16.4.7",
     "dwolla-v2": "^3.4.0",
     "lucide-react": "^0.475.0",
-    "next": "15.1.7",
+    "next": "^15.2.4",
     "node-appwrite": "^15.0.0",
     "plaid": "^23.0.0",
     "query-string": "^9.1.1",

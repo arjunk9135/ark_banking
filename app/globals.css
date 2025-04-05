@@ -43,17 +43,13 @@
   background: #7878a3;
 }
 
-.border-b {
-  @apply border-bottom-width:1px !important;
-  }
-
 @layer utilities {
   .input-class {
     @apply text-16 placeholder:text-16 rounded-lg border border-gray-300 text-gray-900 placeholder:text-gray-500;
   }
 
   .sheet-content button {
-    @apply focus:ring-0 focus-visible:ring-transparent focus:ring-offset-0 focus-visible:ring-offset-0 focus-visible:outline-none focus-visible:border-none !important;
+    @apply focus:ring-0 focus-visible:ring-transparent focus:ring-offset-0 focus-visible:ring-offset-0 focus-visible:outline-none focus-visible:border-none;
   }
 
   .text14_padding10 {
@@ -154,7 +150,7 @@
   }
 
   .recent-transactions-tablist {
-    @apply custom-scrollbar mb-8 flex w-full flex-nowrap;
+    @apply custom-scrollbar mb-8 flex w-full flex-nowrap shadow-none;
   }
 
   /* Right sidebar */
