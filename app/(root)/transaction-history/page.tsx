@@ -17,12 +17,15 @@ const TransactionHistory = async ({ searchParams: { id, page }}:SearchParamProps
   console.log('ID from url params',_id)
 
   const currentId = accounts?.data?.filter((i:any)=>i?.appwriteItemId === _id)?.[0]?.appwriteItemId;
+
+  const transferData = accounts?.data?.filter((i:any)=>i?.appwriteItemId === _id)?.[0]?.transactions;
+  
   
  const accountsData = accounts?.data
      const appwriteItemId = String(loggedIn?.$id) ||  accountsData?.[0]?.appwriteItemId;
      const account = await getAccount({ appwriteItemId });
      
- const currentAccount = account?.accounts?.filter((i:any)=>i?.appwriteItemId === currentId)?.[0];
+ const currentAccount =  accounts?.data?.filter((i:any)=>i?.appwriteItemId === _id)?.[0];
  console.log('GET ACCOUNT _ TX HOSTORY',currentAccount,account,accounts)
 
 const rowsPerPage = 10;
@@ -63,7 +66,7 @@ const currentTransactions = currentAccount?.transactions?.slice(
 
         <section className="flex w-full flex-col gap-6">
           <TransactionsTable 
-            transactions={currentTransactions}
+            transactions={transferData}
           />
             {totalPages > 1 && (
               <div className="my-4 w-full">
