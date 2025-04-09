@@ -11,6 +11,7 @@ const {
 
 export const createTransaction = async (transaction: CreateTransactionProps) => {
   try {
+    console.log('TRANSFER OBJ',transaction)
     const { database } = await createAdminClient();
 
     const newTransaction = await database.createDocument(

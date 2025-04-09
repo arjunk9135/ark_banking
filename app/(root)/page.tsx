@@ -12,6 +12,7 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
 
     const loggedIn = await getLoggedInUser();
     const accounts = loggedIn?.$id ? await getAccounts({ userId: loggedIn?.$id }) : []
+    console.log('ACCOUNTS>........',accounts)
 
     if (!accounts) {
         return;
@@ -53,7 +54,7 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
 
 
             </div>
-            <RightSidebar user={loggedIn} transactions={accounts?.transactions} banks={accountsData?.slice(0, 2)} />
+            <RightSidebar user={loggedIn} accounts={accounts} transactions={accounts?.transactions} banks={accountsData?.slice(0, 2)} />
         </section>
     )
 }

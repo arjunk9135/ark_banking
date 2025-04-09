@@ -5,7 +5,7 @@ import { BankTabItem } from './BankTabItem'
 import BankInfo from './BankInfo'
 import TransactionsTable from './TransactionsTable'
 import { useState } from 'react';
-// import { Pagination } from './Pagination'
+import { Pagination } from './Pagination'
 
 const RecentTransactions = ({
   accounts,
@@ -26,7 +26,7 @@ const RecentTransactions = ({
 
   const [activeTab, setActiveTab] = useState(accounts?.data?.[0]?.appwriteItemId);
   const [accountsData,setAccountsData] = useState(accounts?.data);
-  const [activeTransactions, setActiveTransactions] = useState(currentTransactions);
+  const [activeTransactions, setActiveTransactions] = useState(transactions);
 
 
   
@@ -82,12 +82,12 @@ const RecentTransactions = ({
 
             <TransactionsTable transactions={activeTransactions} />
             
-
+{/* 
             {totalPages > 1 && (
               <div className="my-4 w-full">
-                {/* <Pagination totalPages={totalPages} page={page} /> */}
+                <Pagination totalPages={totalPages} page={page} />
               </div>
-            )}
+            )} */}
           </TabsContent>
         ))}
       </Tabs>

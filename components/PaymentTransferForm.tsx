@@ -28,20 +28,19 @@ import { Textarea } from "./ui/textarea";
 import { BankDropdown } from "./BankDropdown";
 
 const formSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  name: z.string().min(4, "Transfer note is too short"),
-  amount: z.string().min(2, "Amount is too short"),
-  senderBank: z.string().min(4, "Please select a valid bank account"),
-  senderBankItem: z.object({
-    appwriteItemId: z.string(),
-    name: z.string(),
-    currentBalance: z.number(),
-    // Add other fields as needed
-  }).refine((bank) => bank.appwriteItemId, {
-    message: "Please select a valid bank account",
-  }),
-  sharableId: z.string().min(8, "Please select a valid sharable Id"),
-});
+    email: z.string().email("Invalid email address"),
+    name: z.string().min(4, "Transfer note is too short"),
+    amount: z.string().min(1, "Amount is required"),
+    sharableId: z.string().min(8, "Please enter a valid sharable Id"),
+    senderBankItem: z.object({
+      appwriteItemId: z.string(),
+      name: z.string(),
+      currentBalance: z.number(),
+      sharableId: z.string().optional(),
+    }).refine((bank) => bank.appwriteItemId, {
+      message: "Please select a valid bank account",
+    }),
+  });
 
 const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
   const router = useRouter();
@@ -53,7 +52,11 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
       name: "",
       email: "",
       amount: "",
-      senderBank: "",
+      senderBankItem: {
+        appwriteItemId: "",
+        name: "",
+        currentBalance: 0,
+      },
       sharableId: "",
     },
   });
@@ -62,16 +65,21 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
     setIsLoading(true);
 
     try {
+        console.log('FORM SUBMIT')
       const receiverAccountId = decryptId(data.sharableId);
-      const receiverBank = await getBankByAccountId({
-        accountId: receiverAccountId,
-      });
+    const receiverBank = await getBankByAccountId({
+      accountId: receiverAccountId,
+    }) as {
+      fundingSourceUrl: string;
+      userId: { $id: string };
+      $id: string;
+    };
 
-      const senderId = accounts?.filter((i:any)=>i?.sharaebleId === data?.sharableId)?.[0]?.id
+      const senderId = accounts?.filter((i:any)=>i?.appwriteItemId === data?.senderBankItem?.appwriteItemId)?.[0]?.id
       const senderBank = await getBankByAccountId({
         accountId: senderId,
       });
-      console.log('SENDER BANK',senderBank,receiverBank,data,accounts)
+      console.log('SENDER BANK\n\n',senderBank,'\n\nReciever bank\n\n',receiverBank,data,accounts,senderId)
 
       const transferParams = {
         sourceFundingSourceUrl: senderBank?.fundingSourceUrl,
@@ -90,7 +98,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
           senderBankId: senderBank.$id,
           receiverId: receiverBank.userId.$id,
           receiverBankId: receiverBank.$id,
-          email: data.email,
+        //   email: data.email,
         };
 
         const newTransaction = await createTransaction(transaction);
